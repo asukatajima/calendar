@@ -6,6 +6,8 @@
  */
 
 require('./bootstrap');
+// 追記
+require('fullcalendar');
 
 window.Vue = require('vue');
 
