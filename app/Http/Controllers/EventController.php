@@ -22,7 +22,7 @@ class EventController extends Controller
                         new \DateTime($value->enddt
                         .' +1 day'),
                         null,
-                        // Add color and link on event
+                        
                      [
                          'color' => '#ff0000',
                          'url' => 'pass here url and any route',
@@ -54,4 +54,12 @@ class EventController extends Controller
             return redirect('/');
         }
 
+
+public function ajaxUpdate(Request $request)
+{
+    $event = Event::with('client')->findOrFail($request->event_id);
+    $event->update($request->all());
+
+    return response()->json(['event' => $event]);
+}
 }

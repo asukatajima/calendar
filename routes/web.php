@@ -28,4 +28,9 @@ Route::group(['middleware' => 'auth'], function () {
     Route::resource('events', 'EventController');
 });
 
-
+Route::group(['middleware' => 'auth'], function () {
+    // ...
+    Route::resource('events', 'EventController');
+    Route::post('events_ajax_update', 
+        ['uses' => 'Admin\EventController@ajaxUpdate', 'as' => 'events.ajax_update']);
+});

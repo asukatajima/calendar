@@ -63,16 +63,37 @@ $(document).ready(function() {
         },
         
         
-        
-        events: [
-            	{
-                title: 'イベント',
-                start: '2019-02-07',
-                end: '2019-02-10'
-            }
+            
+            
+        eventClick: function(calEvent, jsEvent, view) {
+        $('#event_id').val(calEvent._id);
+        $('#startdt').val(moment(calEvent.start).format('YYYY-MM-DD HH:mm:ss'));
+        $('#enddt').val(moment(calEvent.end).format('YYYY-MM-DD HH:mm:ss'));
+        $('#editModal').modal();
+    },
+    
+     $('#event_update').click(function(e) {
+        e.preventDefault();
+        var data = {
+            _token: '{{ csrf_token() }}',
+            event_id: $('#event_id').val(),
+            start_time: $('#startdt').val(),
+            finish_time: $('#enddt').val(),
+        };
 
-        	]
- })
+        $.post('{{ route('events.ajax_update') }}', data, function( result ) {
+            $('#calendar').fullCalendar('removeEvents', $('#event_id').val());
+
+            $('#calendar').fullCalendar('renderEvent', {
+                title: result.event.client.content,
+                start: result.event.startdt,
+                end: result.event.enddt
+            }, true);
+
+            $('#editModal').modal('hide');
+        });
+        
+     });
   
 });
       </script>
@@ -99,5 +120,30 @@ $(document).ready(function() {
                 {!! Form::submit('投稿', ['class' => 'btn btn-primary']) !!}
         
             </Form>
+            
+            <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <input type="hidden" name="event_id" id="event_id" value="" />
+            
+            <div class="modal-body">
+                <h4>Edit Appointment</h4>
+
+                Start time:
+                <br />
+                <input type="text" class="form-control" name="startdt" id="startdt">
+
+                End time:
+                <br />
+                <input type="text" class="form-control" name="enddt" id="enddt">
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <input type="button" class="btn btn-primary" id="event_update" value="Save">
+            </div>
+        </div>
+    </div>
+</div>
     @endsection
     
