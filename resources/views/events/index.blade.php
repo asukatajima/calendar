@@ -3,16 +3,36 @@
 @section('style')
     <link rel="stylesheet" type="text/css"href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/2.2.7/fullcalendar.min.css"/>
-@endsection    
+@endsection  
+
 @section('script')    
     <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.9.0/moment.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/2.2.7/fullcalendar.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/2.2.7/lang/ja.js"></script>
+    <script>
+    $('.date').datepicker({
+        autoclose: true,
+        dateFormat: "yy-mm-dd"
+    });
+</script>
 <script type='text/javascript'>
 $(document).ready(function() {
         $('#calendar').fullCalendar({
-          
+        
+        events : [
+                @foreach($events as $event)
+                {
+                    title : '{{ $event->content }}',
+                    start : '{{ $event->startdt}}',
+                    end : '{{ $event->enddt}}',
+                    @if ($event->enddt)
+                            end: '{{ $event->enddt }}',
+                    @endif
+                },
+                @endforeach
+            ],
+            
           header: {
             left: 'prev today  prevYear,nextYear',
             center: 'title',
@@ -21,10 +41,9 @@ $(document).ready(function() {
         
         height: 620, // 高さ
         timeFormat: 'h:mm', // 時間表示フォーマット
-        axisFormat: 'H:mm',
-    	timeFormat: {
-		agenda: 'H:mm{ - H:mm}'
-    	},
+        minTime: "00:00:00", //スケジュールの開始時間
+　　　	maxTime: "24:00:00", //スケジュールの最終時間
+        allDaySlot:true,
         timezone: 'Asia/Tokyo', // タイムゾーン設定
         eventLimit: true, // イベント増えた時にリンクボタン表示
         editable: true, // 編集可能設定
@@ -33,8 +52,16 @@ $(document).ready(function() {
         selectHelper: true, // 範囲設定できます
         selectMinDistance: 1,
         droppable: true,// イベントをドラッグできるかどうか
-        
-          select: function(start, end) {
+        navLinks: true, // can click day/week names to navigate views
+        slotDuration: '01:00:00', //表示する時間軸の細かさ
+    	snapDuration: '01:00:00', //スケジュールをスナップするときの動かせる細かさ
+        displayEventTime: true,
+        displayEventEnd: {
+            month: true,
+            basicweek: true,
+            "default": true
+        },
+          select: function(start, end, allDay) {
            var title = prompt(start + " 予定を入力してください:");
            
            $('#startDay').val(start);
@@ -43,7 +70,8 @@ $(document).ready(function() {
                 eventData = {
                             title: title,
                             start: start,
-                            end: end
+                            end: end,
+                            allDay: allDay
            };
         $('#calendar').fullCalendar('renderEvent', eventData, true); 
            }
@@ -51,54 +79,31 @@ $(document).ready(function() {
            },
         
            
-           eventClick:function(event, jsEvent){
-		    	var title = prompt('予定を変更してください:', event.title);
-		    	var eventData;
-			    if(title!=""){
-				  event.title = title;
-			  	$('#calendar').fullCalendar('updateEvent', event); //イベント（予定）の修正
-		      	}else{
-			  	$('#calendar').fullCalendar("removeEvents", event.id); //イベント（予定）の削除				
-		    	}
-        },
-        
-        
+       eventClick:function(event, jsEvent){
+		　　	var title = prompt('予定を入力してください:', event.title);
+		　　	var eventData;
+			　　if(title!=""){
+				　event.title = title;
+			　	$('#calendar').fullCalendar('updateEvent', event); //イベント（予定）の修正
+		　　　	}else{
+			　	$('#calendar').fullCalendar("removeEvents", event.id); //イベント（予定）の削除				
+		　　	}
+　　　　},
+　　　　
+       
+       
             
             
-        eventClick: function(calEvent, jsEvent, view) {
-        $('#event_id').val(calEvent._id);
-        $('#startdt').val(moment(calEvent.start).format('YYYY-MM-DD HH:mm:ss'));
-        $('#enddt').val(moment(calEvent.end).format('YYYY-MM-DD HH:mm:ss'));
-        $('#editModal').modal();
-    },
-    
-     $('#event_update').click(function(e) {
-        e.preventDefault();
-        var data = {
-            _token: '{{ csrf_token() }}',
-            event_id: $('#event_id').val(),
-            start_time: $('#startdt').val(),
-            finish_time: $('#enddt').val(),
-        };
-
-        $.post('{{ route('events.ajax_update') }}', data, function( result ) {
-            $('#calendar').fullCalendar('removeEvents', $('#event_id').val());
-
-            $('#calendar').fullCalendar('renderEvent', {
-                title: result.event.client.content,
-                start: result.event.startdt,
-                end: result.event.enddt
-            }, true);
-
-            $('#editModal').modal('hide');
-        });
-        
-     });
+        })
   
 });
+
+
       </script>
+  
       @endsection
   @section('content')
+  
     <div id="calendar">
     </div>
        <Form action="{{route('events.store')}}" method="post">
@@ -121,29 +126,7 @@ $(document).ready(function() {
         
             </Form>
             
-            <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <input type="hidden" name="event_id" id="event_id" value="" />
-            
-            <div class="modal-body">
-                <h4>Edit Appointment</h4>
+   
 
-                Start time:
-                <br />
-                <input type="text" class="form-control" name="startdt" id="startdt">
-
-                End time:
-                <br />
-                <input type="text" class="form-control" name="enddt" id="enddt">
-            </div>
-
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                <input type="button" class="btn btn-primary" id="event_update" value="Save">
-            </div>
-        </div>
-    </div>
-</div>
     @endsection
     

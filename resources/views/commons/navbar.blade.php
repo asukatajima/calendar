@@ -8,6 +8,7 @@
             <ul class="navbar-nav">
                 @if (Auth::check())
                     <li class="nav-item active dropdown">
+                        
                         <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">{{ Auth::user()->name }}</a>
                         <ul class="dropdown-menu dropdown-menu-right">
                             

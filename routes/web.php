@@ -24,12 +24,10 @@ Route::post('login', 'Auth\LoginController@login')->name('login.post');
 Route::get('logout', 'Auth\LoginController@logout')->name('logout.get');
 
 
-Route::group(['middleware' => 'auth'], function () {
-    Route::resource('events', 'EventController');
-});
+
 
 Route::group(['middleware' => 'auth'], function () {
-    // ...
+    
     Route::resource('events', 'EventController');
     Route::post('events_ajax_update', 
         ['uses' => 'Admin\EventController@ajaxUpdate', 'as' => 'events.ajax_update']);

@@ -8,7 +8,10 @@ class Event extends Model
 {
     protected $fillable = ['startdt','enddt','content'];
 
-   
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
     
    
 

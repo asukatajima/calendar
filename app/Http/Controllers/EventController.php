@@ -9,38 +9,35 @@ use Calendar;
 
 class EventController extends Controller
 {
-        public function index()
+       public function index()
+    {
+       $data = [];
+       if(\Auth::check()){
+           $user =\Auth::user();
+           $events = $user->events()->orderBy('created_at','desc')->get();
+            return view('events.index', [
+                'events' => $events,
+            ]);
+            
+       }
+       return view('welcome',$data);
+    }
+        
+        public function create()
         {
-            $events = [];
-            $data = Event::all();
-            if($data->count()) {
-                foreach ($data as $key => $value) {
-                    $events[] = Calendar::event(
-                        $value->title,
-                        true,
-                        new \DateTime($value->startdt),
-                        new \DateTime($value->enddt
-                        .' +1 day'),
-                        null,
-                        
-                     [
-                         'color' => '#ff0000',
-                         'url' => 'pass here url and any route',
-                     ]
-                    );
-                }
-            }
-            $calendar = Calendar::addEvents($events);
-            return view('welcome', compact('calendar'));
+            $event = new Event;
+       
+            return view('events.create', [
+            'event' => $event,
+         ]);
         }
             
         public function store(Request $request)
        {
-           
             $this->validate($request, [
-                'startdt' => 'required|max:10', 
-                'enddt' => 'required|max:10',
-                'content' => 'required|max:10',
+                'startdt' => 'required|max:20', 
+                'enddt' => 'required|max:20',
+                'content' => 'required|max:20',
             ]);
             
             $event = new Event();
@@ -51,15 +48,16 @@ class EventController extends Controller
             if (\Auth::id() === $event->user_id) {
                 $event->save();
             }
-            return redirect('/');
+            
+            return redirect()->route('events.index');
         }
 
 
-public function ajaxUpdate(Request $request)
-{
-    $event = Event::with('client')->findOrFail($request->event_id);
-    $event->update($request->all());
+        public function ajaxUpdate(Request $request)
+        {
+             $event = Event::with('client')->findOrFail($request->event_id);
+             $event->update($request->all());
 
-    return response()->json(['event' => $event]);
-}
+             return response()->json(['event' => $event]);
+        }
 }
